@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025학년도 전학공 예산 사용 계획</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background-color: #4a6da7;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #2c4c7c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #1a365d;
+        }
+        
+        .page {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .submit-btn {
+            grid-column: span 2;
+            background-color: #4caf50;
+            color: white;
+            padding: 12px;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            background-color: #388e3c;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* 다운로드 버튼 가운데 정렬을 위한 스타일 추가 */
+        .download-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .download-btn {
+            background-color: #ff9800;
+            padding: 12px 20px;
+        }
+        
+        .download-btn:hover {
+            background-color: #f57c00;
+        }
+        
+        .total-price {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        
+        .alert-error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .confirm-dialog-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .confirm-dialog-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .confirm-btn {
+            background-color: #f44336;
+        }
+        
+        .cancel-btn {
+            background-color: #9e9e9e;
+        }
+    </style>
+    <!-- SheetJS 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>2025학년도 전학공 예산 사용 계획</h1>
+        <div class="header-buttons">
+            <button id="bookBtn">도서 구입</button>
+            <button id="materialBtn">자료 구입</button>
+        </div>
+    </header>
+    
+    <!-- 도서 구입 페이지 -->
+    <div id="bookPage" class="page active">
+        <h2>도서 구입 신청</h2>
+        <div id="bookAlert" class="alert"></div>
+        <form id="bookForm">
+            <div class="form-group">
+                <label for="bookTitle">도서명</label>
+                <input type="text" id="bookTitle" required>
+            </div>
+            <div class="form-group">
+                <label for="bookAuthor">저자</label>
+                <input type="text" id="bookAuthor" required>
+            </div>
+            <div class="form-group">
+                <label for="bookPublisher">출판사</label>
+                <input type="text" id="bookPublisher" required>
+            </div>
+            <div class="form-group">
+                <label for="bookPrice">가격</label>
+                <input type="number" id="bookPrice" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="bookUrl">YES24 URL</label>
+                <input type="url" id="bookUrl" required>
+            </div>
+            <div class="form-group">
+                <label for="bookRequester">신청자</label>
+                <input type="text" id="bookRequester" required>
+            </div>
+            <button type="submit" class="submit-btn">신청하기</button>
+        </form>
+        
+        <div class="total-price">총 신청 금액: <span id="totalBookPrice">0</span>원</div>
+        
+        <table id="bookTable">
+            <thead>
+                <tr>
+                    <th>도서명</th>
+                    <th>저자</th>
+                    <th>출판사</th>
+                    <th>가격</th>
+                    <th>YES24 URL</th>
+                    <th>신청자</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        
+        <!-- 다운로드 버튼 가운데 정렬을 위한 컨테이너 추가 -->
+        <div class="download-btn-container">
+            <button id="downloadBookExcel" class="download-btn">도서 데이터 엑셀 다운로드</button>
+        </div>
+    </div>
+    
+    <!-- 자료 구입 페이지 -->
+    <div id="materialPage" class="page">
+        <h2>자료 구입 신청</h2>
+        <div id="materialAlert" class="alert"></div>
+        <form id="materialForm">
+            <div class="form-group">
+                <label for="materialName">자료명</label>
+                <input type="text" id="materialName" required>
+            </div>
+            <div class="form-group">
+                <label for="materialType">자료 유형</label>
+                <select id="materialType" required>
+                    <option value="">선택하세요</option>
+                    <option value="교구">교구</option>
+                    <option value="소프트웨어">소프트웨어</option>
+                    <option value="하드웨어">하드웨어</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="materialPrice">가격</label>
+                <input type="number" id="materialPrice" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="materialUrl">11번가 URL</label>
+                <input type="url" id="materialUrl" required>
+            </div>
+            <div class="form-group">
+                <label for="materialRequester">신청자</label>
+                <input type="text" id="materialRequester" required>
+            </div>
+            <button type="submit" class="submit-btn">신청하기</button>
+        </form>
+        
+        <div class="total-price">총 신청 금액: <span id="totalMaterialPrice">0</span>원</div>
+        
+        <table id="materialTable">
+            <thead>
+                <tr>
+                    <th>자료명</th>
+                    <th>자료 유형</th>
+                    <th>가격</th>
+                    <th>11번가 URL</th>
+                    <th>신청자</th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        
+        <!-- 다운로드 버튼 가운데 정렬을 위한 컨테이너 추가 -->
+        <div class="download-btn-container">
+            <button id="downloadMaterialExcel" class="download-btn">자료 데이터 엑셀 다운로드</button>
+        </div>
+    </div>
+    
+    <!-- 삭제 확인 다이얼로그 -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <div class="confirm-dialog-content">
+            <h3>삭제 확인</h3>
+            <p id="confirmMessage">정말 이 항목을 삭제하시겠습니까?</p>
+            <div class="confirm-dialog-buttons">
+                <button id="cancelBtn" class="cancel-btn">취소</button>
+                <button id="confirmBtn" class="confirm-btn">삭제</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase 설정 및 기능 구현 -->
+    <script type="module">
+      // Firebase SDK 불러오기
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+      import { getDatabase, ref, push, set, onValue, remove, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+      
+      // Firebase 구성
+      const firebaseConfig = {
+        apiKey: "AIzaSyBoTFhKx8qzcB7o3i7PDm331YGJFSvJSMk",
+        authDomain: "book-c2d05.firebaseapp.com",
+        databaseURL: "https://book-c2d05-default-rtdb.firebaseio.com",
+        projectId: "book-c2d05",
+        storageBucket: "book-c2d05.firebasestorage.app",
+        messagingSenderId: "566939045493",
+        appId: "1:566939045493:web:776778e40dc7fb3546f23c"
+      };
+      
+      // Firebase 초기화
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      
+      // 전역 변수로 데이터 저장
+      let bookData = [];
+      let materialData = [];
+      // 데이터 키값 저장을 위한 맵
+      let bookKeyMap = new Map();
+      let materialKeyMap = new Map();
+      
+      // 삭제 확인 다이얼로그 관련 변수
+      let currentDeleteKey = null;
+      let currentDeleteType = null;
+      
+      // Firebase에서 데이터 불러오기
+      function loadDataFromFirebase() {
+        // 도서 데이터 불러오기
+        const booksRef = ref(database, 'books');
+        onValue(booksRef, (snapshot) => {
+          bookData = [];
+          bookKeyMap.clear();
+          const data = snapshot.val();
+          if (data) {
+            Object.entries(data).forEach(([key, book]) => {
+              bookData.push(book);
+              bookKeyMap.set(book.timestamp, key); // timestamp를 키로 사용하여 Firebase 키 저장
+            });
+          }
+          updateBookTable();
+          updateTotalBookPrice();
+        });
+        
+        // 자료 데이터 불러오기
+        const materialsRef = ref(database, 'materials');
+        onValue(materialsRef, (snapshot) => {
+          materialData = [];
+          materialKeyMap.clear();
+          const data = snapshot.val();
+          if (data) {
+            Object.entries(data).forEach(([key, material]) => {
+              materialData.push(material);
+              materialKeyMap.set(material.timestamp, key); // timestamp를 키로 사용하여 Firebase 키 저장
+            });
+          }
+          updateMaterialTable();
+          updateTotalMaterialPrice();
+        });
+      }
+      
+      // 페이지 로드 시 Firebase에서 데이터 불러오기
+      document.addEventListener('DOMContentLoaded', () => {
+        loadDataFromFirebase();
+        
+        // 확인 다이얼로그 설정
+        const confirmDialog = document.getElementById('confirmDialog');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        confirmBtn.addEventListener('click', () => {
+          if (currentDeleteKey && currentDeleteType) {
+            if (currentDeleteType === 'book') {
+              deleteBookFromFirebase(currentDeleteKey);
+            } else if (currentDeleteType === 'material') {
+              deleteMaterialFromFirebase(currentDeleteKey);
+            }
+          }
+          confirmDialog.style.display = 'none';
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+          confirmDialog.style.display = 'none';
+        });
+      });
+      
+      // Firebase에 도서 데이터 저장
+      function saveBookToFirebase(book) {
+        const booksRef = ref(database, 'books');
+        const newBookRef = push(booksRef);
+        set(newBookRef, book)
+          .then(() => {
+            showAlert('bookAlert', '도서 정보가 성공적으로 저장되었습니다.', 'success');
+          })
+          .catch((error) => {
+            showAlert('bookAlert', '도서 정보 저장 중 오류가 발생했습니다: ' + error.message, 'error');
+          });
+      }
+      
+      // Firebase에 자료 데이터 저장
+      function saveMaterialToFirebase(material) {
+        const materialsRef = ref(database, 'materials');
+        const newMaterialRef = push(materialsRef);
+        set(newMaterialRef, material)
+          .then(() => {
+            showAlert('materialAlert', '자료 정보가 성공적으로 저장되었습니다.', 'success');
+          })
+          .catch((error) => {
+            showAlert('materialAlert', '자료 정보 저장 중 오류가 발생했습니다: ' + error.message, 'error');
+          });
+      }
+      
+      // Firebase에서 도서 데이터 삭제
+      function deleteBookFromFirebase(key) {
+        const bookRef = ref(database, `books/${key}`);
+        remove(bookRef)
+          .then(() => {
+            showAlert('bookAlert', '도서 정보가 성공적으로 삭제되었습니다.', 'success');
+          })
+          .catch((error) => {
+            showAlert('bookAlert', '도서 정보 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+          });
+      }
+      
+      // Firebase에서 자료 데이터 삭제
+      function deleteMaterialFromFirebase(key) {
+        const materialRef = ref(database, `materials/${key}`);
+        remove(materialRef)
+          .then(() => {
+            showAlert('materialAlert', '자료 정보가 성공적으로 삭제되었습니다.', 'success');
+          })
+          .catch((error) => {
+            showAlert('materialAlert', '자료 정보 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+          });
+      }
+      
+      // 도서 삭제 확인 다이얼로그 표시
+      function showDeleteBookConfirm(timestamp, title) {
+        const key = bookKeyMap.get(timestamp);
+        if (key) {
+          currentDeleteKey = key;
+          currentDeleteType = 'book';
+          document.getElementById('confirmMessage').textContent = `정말 '${title}' 도서를 삭제하시겠습니까?`;
+          document.getElementById('confirmDialog').style.display = 'flex';
+        } else {
+          showAlert('bookAlert', '삭제할 도서를 찾을 수 없습니다.', 'error');
+        }
+      }
+      
+      // 자료 삭제 확인 다이얼로그 표시
+      function showDeleteMaterialConfirm(timestamp, name) {
+        const key = materialKeyMap.get(timestamp);
+        if (key) {
+          currentDeleteKey = key;
+          currentDeleteType = 'material';
+          document.getElementById('confirmMessage').textContent = `정말 '${name}' 자료를 삭제하시겠습니까?`;
+          document.getElementById('confirmDialog').style.display = 'flex';
+        } else {
+          showAlert('materialAlert', '삭제할 자료를 찾을 수 없습니다.', 'error');
+        }
+      }
+      
+      // 알림 표시 함수
+      function showAlert(elementId, message, type) {
+        const alertEl = document.getElementById(elementId);
+        alertEl.textContent = message;
+        alertEl.className = `alert alert-${type}`;
+        alertEl.style.display = 'block';
+        
+        // 3초 후 알림 숨기기
+        setTimeout(() => {
+          alertEl.style.display = 'none';
+        }, 3000);
+      }
+      
+      // 페이지 전환 기능
+      document.getElementById('bookBtn').addEventListener('click', function() {
+        document.getElementById('bookPage').classList.add('active');
+        document.getElementById('materialPage').classList.remove('active');
+      });
+      
+      document.getElementById('materialBtn').addEventListener('click', function() {
+        document.getElementById('materialPage').classList.add('active');
+        document.getElementById('bookPage').classList.remove('active');
+      });
+      
+      // 도서 폼 제출 처리
+      document.getElementById('bookForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const book = {
+          title: document.getElementById('bookTitle').value,
+          author: document.getElementById('bookAuthor').value,
+          publisher: document.getElementById('bookPublisher').value,
+          price: parseInt(document.getElementById('bookPrice').value),
+          url: document.getElementById('bookUrl').value,
+          requester: document.getElementById('bookRequester').value,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Firebase에 저장
+        saveBookToFirebase(book);
+        
+        // 폼 초기화
+        this.reset();
+      });
+      
+      // 자료 폼 제출 처리
+      document.getElementById('materialForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const material = {
+          name: document.getElementById('materialName').value,
+          type: document.getElementById('materialType').value,
+          price: parseInt(document.getElementById('materialPrice').value),
+          url: document.getElementById('materialUrl').value,
+          requester: document.getElementById('materialRequester').value,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Firebase에 저장
+        saveMaterialToFirebase(material);
+        
+        // 폼 초기화
+        this.reset();
+      });
+      
+      // 도서 테이블 업데이트
+      function updateBookTable() {
+        const tbody = document.querySelector('#bookTable tbody');
+        tbody.innerHTML = '';
+        
+        bookData.forEach(book => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.publisher}</td>
+            <td>${book.price.toLocaleString()}원</td>
+            <td><a href="${book.url}" target="_blank">${formatUrl(book.url)}</a></td>
+            <td>${book.requester}</td>
+            <td>
+              <button class="delete-btn" data-timestamp="${book.timestamp}" data-title="${book.title}">삭제</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        
+        // 삭제 버튼에 이벤트 리스너 추가
+        document.querySelectorAll('#bookTable .delete-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const timestamp = this.getAttribute('data-timestamp');
+            const title = this.getAttribute('data-title');
+            showDeleteBookConfirm(timestamp, title);
+          });
+        });
+      }
+      
+      // 자료 테이블 업데이트
+      function updateMaterialTable() {
+        const tbody = document.querySelector('#materialTable tbody');
+        tbody.innerHTML = '';
+        
+        materialData.forEach(material => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${material.name}</td>
+            <td>${material.type}</td>
+            <td>${material.price.toLocaleString()}원</td>
+            <td><a href="${material.url}" target="_blank">${formatUrl(material.url)}</a></td>
+            <td>${material.requester}</td>
+            <td>
+              <button class="delete-btn" data-timestamp="${material.timestamp}" data-name="${material.name}">삭제</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        
+        // 삭제 버튼에 이벤트 리스너 추가
+        document.querySelectorAll('#materialTable .delete-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const timestamp = this.getAttribute('data-timestamp');
+            const name = this.getAttribute('data-name');
+            showDeleteMaterialConfirm(timestamp, name);
+          });
+        });
+      }
+      
+      // URL 형식 간소화
+      function formatUrl(url) {
+        try {
+          const urlObj = new URL(url);
+          return urlObj.hostname + '...';
+        } catch (e) {
+          return url;
+        }
+      }
+      
+      // 총 가격 업데이트
+      function updateTotalBookPrice() {
+        const total = bookData.reduce((sum, book) => sum + book.price, 0);
+        document.getElementById('totalBookPrice').textContent = total.toLocaleString();
+      }
+      
+      function updateTotalMaterialPrice() {
+        const total = materialData.reduce((sum, material) => sum + material.price, 0);
+        document.getElementById('totalMaterialPrice').textContent = total.toLocaleString();
+      }
+      
+      // Excel 다운로드 기능
+      document.getElementById('downloadBookExcel').addEventListener('click', function() {
+        downloadExcel(bookData, '2025_전학공_도서구입신청');
+      });
+      
+      document.getElementById('downloadMaterialExcel').addEventListener('click', function() {
+        downloadExcel(materialData, '2025_전학공_자료구입신청', true);
+      });
+      
+      // Excel 다운로드 함수
+      function downloadExcel(data, filename, isMaterial = false) {
+        try {
+          // 데이터 필드 변환 (Excel 열 헤더와 데이터 매핑)
+          const excelData = data.map(item => {
+            if (isMaterial) {
+              return {
+                '자료명': item.name,
+                '자료 유형': item.type,
+                '가격(원)': item.price,
+                'URL': item.url,
+                '신청자': item.requester,
+                '신청일시': new Date(item.timestamp).toLocaleString()
+              };
+            } else {
+              return {
+                '도서명': item.title,
+                '저자': item.author,
+                '출판사': item.publisher,
+                '가격(원)': item.price,
+                'URL': item.url,
+                '신청자': item.requester,
+                '신청일시': new Date(item.timestamp).toLocaleString()
+              };
+            }
+          });
+          
+          // 워크북 생성
+          const wb = XLSX.utils.book_new();
+          
+          // 워크시트 생성
+          const ws = XLSX.utils.json_to_sheet(excelData);
+          
+          // 워크시트를 워크북에 추가
+          XLSX.utils.book_append_sheet(wb, ws, '신청 목록');
+          
+          // 열 너비 자동 조정 설정
+          const colWidth = Object.keys(excelData[0] || {}).map(key => ({ wch: key.length * 2 }));
+          ws['!cols'] = colWidth;
+          
+          // 엑셀 파일 다운로드
+          XLSX.writeFile(wb, filename + '.xlsx');
+          
+          showAlert(isMaterial ? 'materialAlert' : 'bookAlert', '엑셀 파일이 성공적으로 다운로드되었습니다.', 'success');
+        } catch (error) {
+          showAlert(isMaterial ? 'materialAlert' : 'bookAlert', '엑셀 파일 생성 중 오류가 발생했습니다: ' + error.message, 'error');
+          console.error('Excel 다운로드 오류:', error);
+        }
+      }
+    </script>
+</body>
+</html>
